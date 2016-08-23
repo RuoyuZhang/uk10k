@@ -34,5 +34,5 @@ mt.cover=data['MT',2]
 copy = 2*mt.cover/mean(auto.cover,na.rm = T)
 
 res=c(sample,copy)
-write.table(res,file=paste0(out_dir,sample),row.names = F,col.names = F,quote = F)
+write.table(res,file=paste0(out_dir,'/',sample),row.names = F,col.names = F,quote = F)
 
