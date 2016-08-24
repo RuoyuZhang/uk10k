@@ -58,5 +58,5 @@ phe=read.table(phe_file,header=T,sep=';')
 
 phe.copy=merge(copys,phe,by.x="sampleID",by.y="Public_ID")
 
-write.table(res,file=out_file,row.names = F,col.names = F,quote = F,sep=;)
+write.table(phe.copy,file=out_file,row.names = F,col.names = T,quote = F,sep=';')
 
