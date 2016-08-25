@@ -63,7 +63,7 @@ select.sample=all.sample[select.in,]
 lm.age=summary(lm(copynumber~age_mean+nuclear_cover,data=select.sample))
 p=ggplot(select.sample,aes(age_mean,copynumber))+geom_point()+geom_smooth(method = "lm")+
     ylab("mtDNA copy number")+xlab("mean Age")
-ggsave(p,file=paste0(out_dir,"Alkaline_copynumber_rmout.jpeg"),width=9, height=5, dpi=300)
+ggsave(p,file=paste0(out_dir,"copynumber_age.jpeg"),width=9, height=5, dpi=300)
 
 # do asscoation for each phenotype
 sig.level=0.05/nrow(pheno.list)
