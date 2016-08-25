@@ -1,10 +1,10 @@
 trait,age
-Hgb,Hematology_tests_Age
-MCV,Hematology_tests_Age
-PCV,Hematology_tests_Age
-PLT,Hematology_tests_Age
-RBC,Hematology_tests_Age
-WBC,Hematology_tests_Age
+Hgb,Hematology_Tests_Age
+MCV,Hematology_Tests_Age
+PCV,Hematology_Tests_Age
+PLT,Hematology_Tests_Age
+RBC,Hematology_Tests_Age
+WBC,Hematology_Tests_Age
 MCH,MCH_Age
 MCHC,MCHC_Age
 Homocysteine,Homocysteine_Age
