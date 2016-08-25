@@ -55,7 +55,7 @@ for (file in files){
     copys=rbind(copys,res)
 }
 
-colnames(copys)=c("sampleID","copynumber")
+colnames(copys)=c("sampleID","copynumber","nuclear_cover")
 
 phe=read.table(phe_file,header=T,sep=';')
 
