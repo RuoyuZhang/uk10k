@@ -45,10 +45,13 @@ for (file in files){
 
     # mt cover
     mt.cover=data['MT',4]/16569
-
-    copy = 2*mt.cover/mean(auto.cover,na.rm = T)
     
-    res=c(sample,copy)
+    # mean autosome cover
+    mean.auto=mean(auto.cover,na.rm = T)
+
+    copy = 2*mt.cover/mean.auto
+    
+    res=c(sample,copy,mean.auto)
     copys=rbind(copys,res)
 }
 
