@@ -93,5 +93,39 @@ for (file in multi.homo.files){
 
 all.data=rbind(single.het,multi.het,single.homo,multi.homo)
 
+colnames(all.data)=c("chr","pos","ref","cover","A","T","G","C","minorF","mle","tag","A1","A1f","A2","A2f","sampleID","type","lane")
+
+# drop NA 
+na.in=which((all.data$A1f)=="")
+all.data=all.data[-na.in,]
+all.data$A1f=as.numeric(all.data$A1f)
+all.data$A2f=as.numeric(all.data$A2f)
+
+for (i in 1:nrow(all.data)){
+    if (all.data[i,"A1f"]>=all.data[i,"A2f"]){
+        all.data[i,"MajorA"]=all.data[i,"A1"]
+        all.data[i,"Majorf"]=all.data[i,"A1f"]
+        all.data[i,"MinorA"]=all.data[i,"A2"]
+        all.data[i,"Minorf"]=all.data[i,"A2f"]
+        
+    }else{
+        all.data[i,"MajorA"]=all.data[i,"A2"]
+        all.data[i,"Majorf"]=all.data[i,"A2f"]
+        all.data[i,"MinorA"]=all.data[i,"A1"]
+        all.data[i,"Minorf"]=all.data[i,"A1f"]
+    }
+    
+    if (all.data[i,"A1"]==all.data[i,"ref"]){
+        all.data[i,"reff"]=all.data[i,"A1f"]
+        all.data[i,"altA"]=all.data[i,"A2"]
+        all.data[i,"altf"]=all.data[i,"A2f"]
+    }else{
+        all.data[i,"reff"]=all.data[i,"A2f"]
+        all.data[i,"altA"]=all.data[i,"A1"]
+        all.data[i,"altf"]=all.data[i,"A1f"]
+    }
+}
+
+
 write.table(all.data,file=out_file,row.names = F,col.names = T,quote = F,sep=';')
 
