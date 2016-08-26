@@ -67,7 +67,7 @@ for (file in single.homo.files){
         data=read.table(file,header=F,stringsAsFactors=F,fill=T,colClasses = c("character"))
         sampleID=basename(file)
         sampleID=gsub(".homoplasmy","",sampleID)
-        data$V14="NA"
+        data$V14="no"
         data$V15=0
         data$sampleID=sampleID
         data$type="homoplasmy"
@@ -82,7 +82,7 @@ for (file in multi.homo.files){
         data=read.table(file,header=F,stringsAsFactors=F,fill=T,colClasses = c("character"))
         sampleID=basename(file)
         sampleID=gsub(".homoplasmy","",sampleID)
-        data$V14="NA"
+        data$V14="no"
         data$V15=0
         data$sampleID=sampleID
         data$type="homoplasmy"
