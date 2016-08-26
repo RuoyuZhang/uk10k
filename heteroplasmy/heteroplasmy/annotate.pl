@@ -10,19 +10,21 @@ Usage:
 
 	-in	FILE	input heteroplasmy file
 	-out	FILE	output file
+    -out2 FILE  output file for diease variants
 	-h	HELP	help information
 
 USAGE
 
-my ( $in, $out, $pre, $help );
+my ( $in, $out, $out2, $pre, $help );
 
 GetOptions(
     'in=s'    => \$in,
     'out=s'   => \$out,
+    'out2=s'  => \$out2,
     'pre=s'   => \$pre,
 );
 
-die "$usage\n" if ( $help || !$in || !$out );
+die "$usage\n" if ( $help || !$in || !$out || !$out2);
 
 #disease file
 my $coding="/home/fs01/rz253/project/1000genome/compare/het/het.5digit.cover3/data/coding.csv";
@@ -125,15 +127,24 @@ close $CAdd2;
 
 my $IN=Open($in);
 open O,">$out";
+open O2,">$out2";
+
+print O2 "change|tag|tRNA|rawscore|phred|detail\n";
+foreach my $name (keys %dis){
+    if (exists $cadd2{$name}{'rawscore'} or exists $score{$name} ){
+        print O2 "$name|D|$dis{$name}{'type'}|$cadd2{$name}{'rawscore'}|$cadd2{$name}{'phred'}|$dis{$name}{'all'}\n";
+    }
+}
+
 
 
 #print O "name\tpos\tref\tdnadepth\tdmajor\tdmajorf\tdminor\tdminorf\tdreff\trnadepth\t
-print O "chr|pos|ref|cover|A|T|G|C|minorF|mle|tag|A1|A1f|A2|A2f|sampleID|type|lane|MajorA|Majorf|MinorA|Minorf|reff|altA|altf|redetail|retype|mutype|tRNA|pscore1|pscore2|rawscore|phred|rawscore2|phred2|change|transOrtranv|disease\n";
+print O "chr|pos|ref|cover|A|T|G|C|minorF|mle|tag|A1|A1f|A2|A2f|sampleID|type|lane|MajorA|Majorf|MinorA|Minorf|reff|altA|altf|redetail|retype|mutype|tRNA|pscore1|pscore2|rawscore|phred|change|transOrtranv|disease\n";
 while(<$IN>){
     chomp;
     my ($chr,$pos,$ref,$cover,$A,$T,$G,$C,$minorF,$mle,$tag,$A1,$A1f,$A2,$A2f,$sampleID,$type,$lane,$MajorA,$Majorf,$MinorA,$Mionrf,$reff,$alt,$altf) = split ';',$_;
-    map{print O "$_|"} ($chr,$pos,$ref,$cover,$A,$T,$G,$C,$minorF,$mle,$tag,$A1,$A1f,$A2,$A2f,$sampleID,$type,$lane,$MajorA,$Majorf,$MinorA,$Mionrf,$reff,$alt,$altf);
     next if ($pos eq "pos" or !defined $alt);
+    map{print O "$_|"} ($chr,$pos,$ref,$cover,$A,$T,$G,$C,$minorF,$mle,$tag,$A1,$A1f,$A2,$A2f,$sampleID,$type,$lane,$MajorA,$Majorf,$MinorA,$Mionrf,$reff,$alt,$altf);
     my $name=$ref.$pos.$alt;
 
     ###position annotation
