@@ -39,6 +39,10 @@ all.sample=rbind(single,multi)
 
 ggplot(all.sample,aes(type,copynumber))+geom_boxplot()
 
+p=ggplot(all.sample,aes(copynumber))+xlab("mtDNA copy number")+ylab("Density")+
+    geom_histogram(aes(y=..density..),fill='lightblue')+geom_density(col='darkblue',linetype='dashed')
+ggsave(p,file=paste0(out_dir,"copynumber_distribution.jpeg"),width=9, height=5, dpi=300)
+
 # phenotype to investigate
 pheno.list=read.csv(pheno_list,header=T)
 
