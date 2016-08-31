@@ -1,0 +1,2 @@
+vcf2kinship --inVcf /home/fs01/rz253/project/uk10k/analysis/copynumber/gwas/prepare/all.chr.anno.vcf.gz --pca --out /home/fs01/rz253/project/uk10k/analysis/copynumber/gwas/prepare/pca --minMAF 0.05 --ibs 
+#rvtest --inVcf ../all.chr.anno.vcf.gz --pheno ../pheno.ped --pheno-name copynumber --out all.anno.pca.output --single wald,score --freqLower 0.05 --freqUpper 0.95 --covar pca.ped --covar-name U1,U2
