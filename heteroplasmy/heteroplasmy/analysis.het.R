@@ -61,7 +61,7 @@ ggsave(p,filename=paste0(out_dir,"/","heteroplasmy_dist_all_sample.jpeg"), width
 data.homo=data[data$tag=='M',]
 data.het=data[data$tag=='H',]
 
-haplogrep.het=data.frame()
+haplogrep.het=NULL
 haplogrep.homo=NULL
 for (id in sampleID){
     homo.in=which(data.homo$sampleID==id)
@@ -78,13 +78,26 @@ for (id in sampleID){
         line=paste(line,sep="",collapse = "\t")
         haplogrep.homo=c(haplogrep.homo,line)
     }
-    #homo=data.homo[homo.in,]
-    #het=data.het[het.in,]
+    
+    if (length(het.in)>0){
+        variants1=data.het[het.in,c('pos','MajorA')]
+        variants1=paste0(variants1$pos,variants1$MajorA)
+        line=c(paste0(id,"Ma"),'1-16569','?',variants,variants1)
+        line=paste(line,sep="",collapse = "\t")
+        haplogrep.het=c(haplogrep.het,line)
+        
+        variants2=data.het[het.in,c('pos','MinorA')]
+        variants2=paste0(variants2$pos,variants2$MinorA)
+        line=c(paste0(id,"Mi"),'1-16569','?',variants,variants2)
+        line=paste(line,sep="",collapse = "\t")
+        haplogrep.het=c(haplogrep.het,line)
+    }
     
 
 }
 
 write.table(haplogrep.homo,file=paste0(out_dir,'haplogrep.homoplasmy.txt'),row.names = F,col.names = F,quote = F)
+write.table(haplogrep.het,file=paste0(out_dir,'haplogrep.heteroplasmy.txt'),row.names = F,col.names = F,quote = F)
 
 # remove containmated samples
 rm.in=which(ind.num$het.num>out.cutoff)
