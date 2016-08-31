@@ -10,6 +10,7 @@ option_list <- list(
     make_option(c("--multi_copy_file"), type="character", help="file containing copy number and phenotype for single samples", default="f:/Cornell/experiment/uk10k/uk10k/copynumber/calculate_copy_number/single.copy.txt"),
     make_option(c("--single_copy_file"), type="character", help="file containing copy number and phenotype for single samples", default="f:/Cornell/experiment/uk10k/uk10k/copynumber/calculate_copy_number/multi.copy.txt"),
     make_option(c("--pheno_list_file"), type="character", help="file containing phenotype list", default="f:/Cornell/experiment/uk10k/uk10k/copynumber/copy_phe/pheno_list.csv"),
+    make_option(c("--haplogroup_file"), type="character", help="file containing phenotype list", default="f:/Cornell/experiment/uk10k/uk10k/copynumber/copy_phe/haplogroups.txt"),
     make_option(c("--out_dir"), type="character", help="output file", default="f:/Cornell/experiment/uk10k/uk10k/copynumber/copy_phe/")
     
 )
@@ -23,6 +24,8 @@ single_file=opt$single_copy_file
 multi_file=opt$multi_copy_file
 # phenotype list
 pheno_list=opt$pheno_list_file
+# haplogroup file
+hap_file=opt$haplogroup_file
 # outdir
 out_dir=opt$out_dir
 
@@ -43,8 +46,16 @@ p=ggplot(all.sample,aes(copynumber))+xlab("mtDNA copy number")+ylab("Density")+
     geom_histogram(aes(y=..density..),fill='lightblue')+geom_density(col='darkblue',linetype='dashed')
 ggsave(p,file=paste0(out_dir,"copynumber_distribution.jpeg"),width=9, height=5, dpi=300)
 
-# phenotype to investigate
+# phenotype to investigate 
 pheno.list=read.csv(pheno_list,header=T)
+
+# haplogroup
+hap=read.table(hap_file,header = T,fill = T)
+hap$hap=substr(hap$Haplogroup,1,1)
+all.sample=merge(all.sample,hap[,c(1,3)],by.x="sampleID",by.y = "SampleID" )
+# test association between copy number and haplogroup
+summary(lm(copynumber~hap, data = all.sample))
+# not significant
 
 # ages
 ages=all.sample[,as.character(unique(pheno.list$age))]
