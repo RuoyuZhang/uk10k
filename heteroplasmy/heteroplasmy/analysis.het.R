@@ -233,26 +233,47 @@ homo.unique=unique(homo.data$redetail)
 length(intersect(het.unique,homo.unique))/length(het.unique)
 
 #regions
-het1=table(data.rmcon$mutype[data.rmcon$tag=='H'])[c('control_region','rRNA','tRNA')]
+data.rmcon$retype[is.na(data.rmcon$retype)]='Intergenic'
+data.rmcon$mutype[data.rmcon$retype=="Intergenic"]='Intergenic'
+het1=table(data.rmcon$mutype[data.rmcon$tag=='H'])[c('control_region','Intergenic','rRNA','tRNA')]
 het2=table(data.rmcon$tRNA[data.rmcon$tag=='H'])[c('NS','SY')]
 
-homo1=table(data.rmcon$mutype[data.rmcon$tag=='M'])[c('control_region','rRNA','tRNA')]
+homo1=table(data.rmcon$mutype[data.rmcon$tag=='M'])[c('control_region','Intergenic','rRNA','tRNA')]
 homo2=table(data.rmcon$tRNA[data.rmcon$tag=='M'])[c('NS','SY')]
 
 heteroplasmy=c(het1,het2)/sum(c(het1,het2))
 homoplasmy=c(homo1,homo2)/sum(c(homo1,homo2))
 
 #region plot
-region=c("Control Region","rRNA","tRNA","Nonsynonymous","Synonymous")
+region=c("Control Region","Intergenic","rRNA","tRNA","Nonsynonymous","Synonymous")
 
 dat=data.frame(Percentage=c(heteroplasmy,homoplasmy),
-               Group=c(rep("Heteroplasmy",5),rep("Homoplasmy",5)),
+               Group=c(rep("Heteroplasmy",6),rep("Homoplasmy",6)),
                region=c(region,region))
 p=ggplot(dat,aes(x=Group,y=Percentage,fill=region))+
     geom_bar(stat="identity")+coord_flip()+ylab("")+xlab("")
 
 ggsave(p,filename=paste0(out_dir,"/","region_distribution.jpeg"), width=8, height=5, dpi=300)
 
+# gene location
+het.gene=data.rmcon$retype[data.rmcon$tag=='H']
+homo.gene=data.rmcon$retype[data.rmcon$tag=='M']
+
+het.gene = (table(het.gene))/sum(table(het.gene))
+homo.gene = (table(homo.gene))/sum(table(homo.gene))
+
+het.gene=data.frame(freq=het.gene,tag=rep("Heteroplasmy",length(het.gene)));colnames(het.gene)=c("gene","frequency",'tag')
+homo.gene=data.frame(freq=homo.gene,tag=rep("Homoplasmy",length(homo.gene)));colnames(homo.gene)=c("gene","frequency",'tag')
+df = rbind(het.gene,homo.gene)
+
+#gene.seq = homo.gene$gene
+#gene.seq = c(as.character(gene.seq[c(1,2,8,10)]),as.character(gene.seq[-c(1,2,8,10)]))
+
+#df$gene=factor(df$gene,levels = gene.seq)
+
+p=ggplot(df, aes(x=gene,y=frequency, fill=tag)) + geom_bar(position="dodge",stat='identity') + 
+    theme(axis.text.x = element_text(angle = 90, hjust = 1)) + xlab("")+ylab("Frequency in all variants")
+ggsave(p,filename=paste0(out_dir,"/","variants.gene.distribution.jpeg"), width=12, height=6, dpi=300)
 
 # Pathogenicity of heteroplasmy
 # how many heteroplasmies are associatied with disease?
