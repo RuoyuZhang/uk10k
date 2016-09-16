@@ -12,6 +12,7 @@ theme_set(theme_bw(base_size = 20))
 option_list <- list(
     make_option(c("--in_file"), type="character", help="dir to input data", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/heteroplasmy/het.homo.annotate.txt"),
     make_option(c("--sample_name_file"), type="character", help="dir to sample name file", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/heteroplasmy/sampleID"),
+    make_option(c("--hap_file"), type="character", help="dir to haplogroup file", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/heteroplasmy/result/heteroplasmy.haplogroups.hsd"),
     make_option(c("--disease_file"), type="character", help="dir to sample name file", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/heteroplasmy/disease.score"),
     make_option(c("--out_dir"), type="character", help="output file", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/heteroplasmy/result/")
     
@@ -24,6 +25,8 @@ opt <- parse_args(OptionParser(option_list=option_list))
 in_file=opt$in_file
 # sampleID
 sampleID_file=opt$sample_name_file
+# haplogroup file
+hap_file = opt$hap_file
 # disease file
 disease_file=opt$disease_file
 # out_dir
@@ -36,6 +39,7 @@ sampleID=read.table(sampleID_file,header=F)[[1]]
 
 data=read.table(in_file,header=T,sep='|',stringsAsFactors=F,quote = "")
 
+# Basic statistics
 # heteroplasmy distribution
 ind.het=ddply(subset(data,tag=='H'),.(sampleID),nrow)
 ind.homo=ddply(subset(data,tag=='M'),.(sampleID),nrow)
@@ -48,11 +52,13 @@ rownames(ind.num)=ind.num$sampleID
 ind.num[ind.het$sampleID,2]=ind.het$V1
 ind.num[ind.homo$sampleID,3]=ind.homo$V1
 
+ind.num=ind.num[-nrow(ind.num),]
+
 # plot distribution
 # heteroplasmy 
 # individuals with many heteroplasmies may be containminated
-# do outlier test by Q3 + 2IQR
-out.cutoff=quantile(ind.num$het.num,probs = 0.75)+2*IQR(ind.num$het.num)
+# do outlier test by Q3 + 3IQR
+out.cutoff=quantile(ind.num$het.num,probs = 0.75)+1.5*IQR(ind.num$het.num)
 p=ggplot(ind.num,aes(het.num))+geom_histogram(binwidth = 1)+xlab("Number of Heteroplasmy")+ylab("Count of Individuals")+
     geom_vline(xintercept = out.cutoff,col="red")
 ggsave(p,filename=paste0(out_dir,"/","heteroplasmy_dist_all_sample.jpeg"), width=8, height=5, dpi=300)
@@ -96,28 +102,85 @@ for (id in sampleID){
 
 }
 
-write.table(haplogrep.homo,file=paste0(out_dir,'haplogrep.homoplasmy.txt'),row.names = F,col.names = F,quote = F)
-write.table(haplogrep.het,file=paste0(out_dir,'haplogrep.heteroplasmy.txt'),row.names = F,col.names = F,quote = F)
+#write.table(haplogrep.homo,file=paste0(out_dir,'haplogrep.homoplasmy.txt'),row.names = F,col.names = F,quote = F)
+#write.table(haplogrep.het,file=paste0(out_dir,'haplogrep.heteroplasmy.txt'),row.names = F,col.names = F,quote = F)
+
+# minor allele has same haplogroup as major allele?
+hap_data = read.table(hap_file,header = F, fill = T)
+hap_data = hap_data[-1,c(1,3)]
+
+diff_hap = NULL
+for (i in seq(1,nrow(hap_data),2)){
+    if (hap_data[i,2]!=hap_data[i+1,2]){
+        sample_name = sub('Ma','',hap_data[i,1])
+        diff_hap = c(diff_hap,sample_name)
+    }
+}
+
+# samples with different haplogroup
+length(diff_hap)
+
+# heteroplasmy greater than cutoff 
+outlier_sample = ind.num$sampleID[ind.num$het.num>out.cutoff]
+length(outlier_sample)
+
+#write.table(ind.num,file=paste0(out_dir,"het.number.txt"),row.names = F,quote = F)
 
 # remove containmated samples
-rm.in=which(ind.num$het.num>out.cutoff)
-rm.name=as.character(ind.num$sampleID[which(ind.num$het.num>out.cutoff)])
-ind.num.rmcon=ind.num[-rm.in,]
+con_sample = intersect(diff_hap,outlier_sample)
+keep_sample = setdiff(rownames(ind.num),con_sample)
+
+write.table(con_sample,file=paste0(out_dir,'contaminated_sample.txt'),row.names = F,col.names = F,quote = F)
+
+ind.num.rmcon=ind.num[keep_sample,]
 
 # plot again
+# heteroplasmy
 p=ggplot(ind.num.rmcon,aes(het.num,fill=I("lightblue"),col=I("blue")))+geom_histogram(binwidth = 1)+xlab("Number of Heteroplasmy")+ylab("Count of Individuals")
 ggsave(p,filename=paste0(out_dir,"/","heteroplasmy_dist_rm_containmination.jpeg"), width=8, height=5, dpi=300)
-
-
 # homoplasmy
-# remove containminated samples
-ggplot(ind.num,aes(homo.num))+geom_histogram()
+ggplot(ind.num.rmcon,aes(homo.num))+geom_histogram()
 
 # remove containminated samples
-rm.in.data=which(data$sampleID %in% rm.name)
+rm.in.data=which(data$sampleID %in% con_sample)
 data.rmcon=data[-rm.in.data,]
 
-# basic stat
+N = 1595
+
+# heteroplasmy prevelence
+het.data = subset(data.rmcon,tag=='H')
+# total number of heteroplasmy
+nrow(het.data)
+length(unique(het.data$sampleID)); length(unique(het.data$sampleID))/N
+
+# # of individuals haboring heteroplasmy
+maf = seq(0.02,0.2,0.02)
+individual.per = NULL
+for (f in maf){
+    het.temp = subset(het.data,Minorf>=f)
+    nrow(het.temp)
+    length(unique(het.temp$sampleID)); 
+    ind.per=length(unique(het.temp$sampleID))/N
+    individual.per = c(individual.per,ind.per)
+}
+
+p=qplot(maf,individual.per) + geom_line() + xlab("MAF cutoff") + ylab("Percentage of individuals with heteroplasmy")  
+ggsave(p,filename=paste0(out_dir,"/","Percentage of individual with different cutoff.jpeg"), width=8, height=5, dpi=300)
+
+# heteroplasmy > 5% 
+het.0.05 = subset(het.data,Minorf>=0.05)
+nrow(het.0.05)
+length(unique(het.0.05$sampleID)); length(unique(het.0.05$sampleID))/N
+# heteroplasmy > 10% 
+het.0.1 = subset(het.data,Minorf>=0.1)
+nrow(het.0.1)
+length(unique(het.0.1$sampleID)); length(unique(het.0.1$sampleID))/N
+
+# homoplasmy prevelence
+homo.data = subset(data.rmcon,tag=='M')
+nrow(homo.data)
+length(unique(homo.data$sampleID)); length(unique(homo.data$sampleID))/N
+
 #sharing of heteroplasmy and homoplasmy
 #
 het.share=ddply(subset(data.rmcon,tag=='H'),.(redetail),nrow)
@@ -164,7 +227,10 @@ p1 = ggplot(dt, aes(x = "", y = A, fill = B)) +
 p1
 ggsave(p1,filename=paste0(out_dir,"/","homoplasmy_sharing.jpeg"), width=8, height=5, dpi=300)
 
-
+# How many heteroplasmy alleles are observed in homoplasmy?
+het.unique=unique(het.data$redetail)
+homo.unique=unique(homo.data$redetail)
+length(intersect(het.unique,homo.unique))/length(het.unique)
 
 #regions
 het1=table(data.rmcon$mutype[data.rmcon$tag=='H'])[c('control_region','rRNA','tRNA')]
@@ -189,22 +255,101 @@ ggsave(p,filename=paste0(out_dir,"/","region_distribution.jpeg"), width=8, heigh
 
 
 # Pathogenicity of heteroplasmy
+# how many heteroplasmies are associatied with disease?
+sum(!is.na(het.data$disease))
+1-sum(is.na(het.data$disease))/nrow(het.data)
 
-# NS sites
+# how many individual harbor disease associated heteroplamy?
+length(unique(het.data[!is.na(het.data$disease),]$sampleID))
+length(unique(het.data[!is.na(het.data$disease),]$sampleID))/1595
+
+# compare to homoplasmy
+sum(!is.na(homo.data$disease))
+1-sum(is.na(homo.data$disease))/nrow(homo.data)
+
+# how many individual harbor disease associated heteroplamy?
+length(unique(homo.data[!is.na(homo.data$disease),]$sampleID))
+length(unique(homo.data[!is.na(homo.data$disease),]$sampleID))/1595
 
 
-
+# Pathogenic score of heteroplasmy and homoplasmy sites
+# All sites
 # read disease associated variants
 disease=read.table(disease_file,header=T,sep='|',quote="")
 disease$Minorf=0
+
+het.score=data.rmcon[data.rmcon$tag=='H',"phred"]
+homo.score=data.rmcon[data.rmcon$tag=='M',"phred"]
+
+# boxplot
+df=data.frame(score=c(disease$phred,het.score,homo.score),
+              tag=c(rep("Disease-assoicated sites",length(disease$phred)),rep("Heteroplasmy sites",length(het.score)),rep("Homoplasmy sites",length(homo.score))))
+p=ggplot(data=df,aes(tag,score,color=tag))+geom_boxplot()+scale_x_discrete(breaks=NULL)+scale_color_discrete(name="")+
+    ylab("Pathogenic Score")+theme(axis.text=element_text(size=20))+xlab("")
+ggsave(p,filename=paste0(out_dir,"/","all.sites.pathogenic.boxplot.jpeg"), width=8, height=5, dpi=300)
+
+# t test
+t.test(het.score,homo.score)
+t.test(het.score,disease$phred)
+
+HM.all=data.rmcon[,c("pos","tag","phred","Minorf")]
+HM.h=HM.all[HM.all$tag=='H',]
+h.maxf=tapply(HM.h$Minorf,HM.h$pos,max)
+h.ps=tapply(HM.h$phred,HM.h$pos,mean)
+h.tag=rep('l',length(h.ps))
+h.tag[h.maxf>0.1]='h'
+
+# t test
+t.test(h.ps[h.tag=='l'],h.ps[h.tag=='h'])
+t.test(h.ps[h.tag=='l'],disease$phred)
+
+HM.homo=HM.all[HM.all$tag=='M',]
+HM.homo=unique(HM.homo)
+
+plot.df=data.frame(Minorf=h.maxf,phred=h.ps,tag=h.tag)
+ggplot(plot.df,aes(h.tag,h.ps))+geom_boxplot(notch = T)
+
+ggplot(plot.df, aes(h.ps, colour = h.tag)) + stat_ecdf(size=2) +
+    theme(text = element_text(size=30),legend.title=element_blank(),legend.position="top") + 
+    xlab("Pathogenic score") + ylab("")+guides(col=guide_legend(ncol=2))
+
+ALL=NULL
+ALL=rbind(plot.df,HM.homo[,c('Minorf','phred','tag')],disease[,c('Minorf','phred','tag')])
+
+ALL$tag2=NULL
+ALL$tag2[ALL$tag=='M']='Homoplasmy'
+ALL$tag2[ALL$tag=='D']='Disease associated mutation'
+ALL$tag2[ALL$tag=="H"&ALL$Minorf<0.05]='Heteroplsamy 2%-10%'
+ALL$tag2[ALL$Minorf>=0.1]='Heteroplasmy higher than 10%'
+
+ALL$tag=factor(ALL$tag,levels=c("M",'h','l','D'))
+p=ggplot(ALL, aes(phred, colour = tag)) + stat_ecdf(size=2) +
+    theme(text = element_text(size=20),legend.title=element_blank(),legend.position="top") + 
+    xlab("Pathogenic score") + ylab("")+guides(col=guide_legend(ncol=2))+
+    scale_color_discrete(labels=c("Homoplasmy",'Heteroplasmy higher than 10%',"Heteroplsamy 2%-10%","Disease associated mutation"))
+ggsave(p,filename=paste0(out_dir,"/","heteroplasmy_pathogenicity_cumulative.all.sites.jpeg"), width=8, height=5, dpi=300)
+
+p=ggplot(ALL, aes(x=tag,y=phred,color=tag))+geom_boxplot(notch = T)+guides(fill=F)+ 
+    scale_color_discrete(name="",labels=c("Homoplasmy",'Heteroplasmy higher than 10%',"Heteroplsamy 2%-10%","Disease associated mutation"))+
+    ylab("Pathogenic Score")+theme(axis.text=element_text(size=20))+scale_x_discrete(breaks=NULL)+xlab("")
+ggsave(p,filename=paste0(out_dir,"/","l_h_heteroplasmy.boxplot.all.sites.jpeg"), width=8, height=5, dpi=300)
+
+
+# NS sites
 disease.NS=disease[disease$tRNA=='NS',]
 
-het.score=data[data$tag=='H',"phred"]
-homo.score=data[data$tag=='M',"phred"]
+het.score=data.rmcon[which(data.rmcon$tag=='H' & data.rmcon$tRNA=='NS'),"phred"]
+homo.score=data.rmcon[which(data.rmcon$tag=='M' & data.rmcon$tRNA=='NS'),"phred"]
+
+# boxplot
+df=data.frame(score=c(disease.NS$phred,het.score,homo.score),
+              tag=c(rep("Disease-assoicated sites",length(disease.NS$phred)),rep("Heteroplasmy sites",length(het.score)),rep("Homoplasmy sites",length(homo.score))))
+p=ggplot(data=df,aes(tag,score,color=tag))+geom_boxplot()+scale_x_discrete(breaks=NULL)+scale_color_discrete(name="")+
+    ylab("Pathogenic Score")+theme(axis.text=element_text(size=20))+xlab("")
+ggsave(p,filename=paste0(out_dir,"/","NS.sites.pathogenic.boxplot.jpeg"), width=8, height=5, dpi=300)
 
 t.test(het.score,homo.score)
-t.test(het.score.all,homo.score.all)
-t.test(het.score,disease.NS$phred2)
+t.test(het.score,disease.NS$phred)
 
 HM.all=data.rmcon[which(data.rmcon$tRNA=='NS'),c("pos","tag","phred","Minorf")]
 HM.h=HM.all[HM.all$tag=='H',]
@@ -231,19 +376,19 @@ ALL=rbind(plot.df,HM.homo[,c('Minorf','phred','tag')],disease.NS[,c('Minorf','ph
 ALL$tag2=NULL
 ALL$tag2[ALL$tag=='M']='Homoplasmy'
 ALL$tag2[ALL$tag=='D']='Disease associated mutation'
-ALL$tag2[ALL$tag=="H"&ALL$Minorf<0.05]='Heteroplsamy 2%-5%'
-ALL$tag2[ALL$Minorf>=0.05]='Heteroplasmy higher than 5%'
+ALL$tag2[ALL$tag=="H"&ALL$Minorf<0.1]='Heteroplsamy 2%-10%'
+ALL$tag2[ALL$Minorf>=0.1]='Heteroplasmy higher than 10%'
 
-
+ALL$tag=factor(ALL$tag,levels=c("M",'h','l','D'))
 p=ggplot(ALL, aes(phred, colour = tag)) + stat_ecdf(size=2) +
     theme(text = element_text(size=20),legend.title=element_blank(),legend.position="top") + 
     xlab("Pathogenic score") + ylab("")+guides(col=guide_legend(ncol=2))+
-    scale_color_discrete(labels=c('Heteroplasmy higher than 10%',"Heteroplsamy 2%-10%","Homoplasmy","Disease associated mutation"))
-ggsave(p,filename=paste0(out_dir,"/","heteroplasmy_pathogenicity_cumulative.jpeg"), width=8, height=5, dpi=300)
+    scale_color_discrete(labels=c("Homoplasmy",'Heteroplasmy higher than 10%',"Heteroplsamy 2%-10%","Disease associated mutation"))
+ggsave(p,filename=paste0(out_dir,"/","heteroplasmy_pathogenicity_cumulative.NS.jpeg"), width=8, height=5, dpi=300)
 
 
-ALL$tag=factor(ALL$tag,levels=c("M",'h','l','D'))
-
-ggplot(ALL, aes(x=tag,y=phred,fill=tag))+geom_boxplot(notch = T)+guides(fill=F)+ geom_jitter()
-    ylab("Pathogenic Score")+theme(axis.text=element_text(size=20))
+p=ggplot(ALL, aes(x=tag,y=phred,color=tag))+geom_boxplot(notch = T)+guides(fill=F)+ 
+    scale_color_discrete(name="",labels=c("Homoplasmy",'Heteroplasmy higher than 10%',"Heteroplsamy 2%-10%","Disease associated mutation"))+
+    ylab("Pathogenic Score")+theme(axis.text=element_text(size=20))+scale_x_discrete(breaks=NULL)+xlab("")
+ggsave(p,filename=paste0(out_dir,"/","l_h_heteroplasmy.boxplot.NS.sites.jpeg"), width=8, height=5, dpi=300)
 
