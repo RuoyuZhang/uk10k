@@ -48,9 +48,9 @@ for (file in files){
             }else{
                 f1=as.numeric(strsplit(as.character(unlist(use[n1])),split = ':')[[1]][5])
                 f2=as.numeric(strsplit(as.character(unlist(use[n2])),split = ':')[[1]][5])
-                if (f1 > 0.5){
+                if (f1 > 0.9){
                     line=c(line,0)
-                }else if (f2 > 0.5){
+                }else if (f2 > 0.9){
                     line=c(line,1)
                 }else{
                     line=c(line,NA)
