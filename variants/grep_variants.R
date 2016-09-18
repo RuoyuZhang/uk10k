@@ -43,7 +43,7 @@ for (file in files){
             use = data[which(data$V2==pos),c(4,5,6,7,8)]
             names(use)=c("dep","A","T","G","C")
  #           print(use)
-            if (use['dep']<20){
+            if (use['dep']<200){
                 line=c(line,NA)
             }else{
                 f1=as.numeric(strsplit(as.character(unlist(use[n1])),split = ':')[[1]][5])
