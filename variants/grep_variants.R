@@ -42,7 +42,7 @@ for (file in files){
         if (pos %in% data$V2){
             use = data[which(data$V2==pos),c(4,5,6,7,8)]
             names(use)=c("dep","A","T","G","C")
-            print(use)
+ #           print(use)
             if (use['dep']<20){
                 line=c(line,NA)
             }else{
