@@ -29,10 +29,14 @@ for (file in files){
     sample=gsub('.snp.vcf','',sample)
     # read sample
     absdir=paste0(in_dir,'/',file)
-    data=read.table(absdir,header=F,fill=T)
-    data.file=paste(sample,paste0(data$V4,data$V2,data$V5))
+    f=try(read.table(absdir,header=F,fill=T))
+    if (class(f)!='try-error'){
+        data=read.table(absdir,header=F,fill=T)
     
-    var.ped=c(var.ped,data.file)
+        data.file=paste(sample,paste0(data$V4,data$V2,data$V5))
+    
+        var.ped=c(var.ped,data.file)
+    }
     
 }
 
