@@ -5,7 +5,6 @@ library('reshape2')
 
 option_list <- list(
     make_option(c("--in_dir"), type="character", help="dir to input data", default="f:/Cornell/experiment/uk10k/uk10k/variants/"),
-    make_option(c("--variants_file"), type="character", help="variants file", default="f:/Cornell/experiment/uk10k/uk10k/copynumber/copy_phe/result/mtDNA_variants_list.txt"),
     make_option(c("--out_file"), type="character", help="output file", default="f:/Cornell/experiment/uk10k/uk10k/variants/variants.genotype.txt")
     
 )
@@ -15,8 +14,6 @@ print(opt)
 
 # rawfile
 in_dir=opt$in_dir
-# variants file
-var_file=opt$variants_file
 # outdir
 out_file=opt$out_file
 
@@ -26,14 +23,17 @@ var.ped=NULL
 for (file in files){
     # get file name
     sample=basename(file)
-    sample=gsub('.snp.vcf','',sample)
+    sample=gsub('.vcf','',sample)
     # read sample
     absdir=paste0(in_dir,'/',file)
     f=try(read.table(absdir,header=F,fill=T))
     if (class(f)!='try-error'){
         data=read.table(absdir,header=F,fill=T)
-    
-        data.file=paste(sample,paste0(data$V4,data$V2,data$V5))
+        data=data[data$V7=="PASS",]
+        mutation=paste0(data$V4,data$V2,data$V5)
+        detail=do.call(rbind,strsplit(as.character(data$V10),split=':'))[,3]
+        
+        data.file=paste(sample,mutation,detail)
     
         var.ped=c(var.ped,data.file)
     }
@@ -42,27 +42,12 @@ for (file in files){
 
 var.all=strsplit(var.ped,split=" ")
 var.all=do.call(rbind,var.all)
-colnames(var.all)=c("sampleID","snp")
+colnames(var.all)=c("sampleID","snp","frequency")
 var.all=as.data.frame(var.all)
 
-snps=unique(var.all$snp)
-samples=unique((var.all$sampleID))
+spread=dcast(var.all,sampleID ~ snp,value.var = 'frequency',fill = NA)
 
-spread=NULL
-for (sample in samples){
-    temp=subset(var.all,sampleID==sample)
-    line=sample
-    for (snp in snps){
-        if (snp %in% temp$snp){
-            line=c(line,1)
-        }else{
-            line=c(line,0)
-        }
-    }
-    spread = rbind(spread,line)
-}
-
-colnames(spread)=c("sampleID",as.character(snps))
+#colnames(spread)=c("sampleID",as.character(snps))
 
 write.table(spread,file=out_file,row.names = F,col.names = T,quote = F)
 
