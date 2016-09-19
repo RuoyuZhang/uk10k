@@ -30,6 +30,7 @@ for (file in files){
     if (class(f)!='try-error'){
         data=read.table(absdir,header=F,fill=T)
         data=data[data$V7=="PASS",]
+        data=data[nchar(as.character(data$V5))<2,]
         mutation=paste0(data$V4,data$V2,data$V5)
         detail=do.call(rbind,strsplit(as.character(data$V10),split=':'))[,3]
         
@@ -46,6 +47,8 @@ colnames(var.all)=c("sampleID","snp","frequency")
 var.all=as.data.frame(var.all)
 
 spread=dcast(var.all,sampleID ~ snp,value.var = 'frequency',fill = NA)
+
+spread[which(is.na(spread),arr.ind = T)]=0
 
 #colnames(spread)=c("sampleID",as.character(snps))
 
