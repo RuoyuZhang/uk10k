@@ -5,6 +5,7 @@ library('reshape2')
 
 option_list <- list(
     make_option(c("--in_dir"), type="character", help="dir to input data", default="f:/Cornell/experiment/uk10k/uk10k/variants/"),
+    make_option(c("--strict"), type="logical", help="whether filter vcf", default=FALSE),
     make_option(c("--out_file"), type="character", help="output file", default="f:/Cornell/experiment/uk10k/uk10k/variants/variants.genotype.txt")
     
 )
@@ -29,7 +30,9 @@ for (file in files){
     f=try(read.table(absdir,header=F,fill=T))
     if (class(f)!='try-error'){
         data=read.table(absdir,header=F,fill=T)
-        data=data[data$V7=="PASS",]
+        if (opt$strict){
+            data=data[data$V7=="PASS",]
+        }
         data=data[nchar(as.character(data$V5))<2,]
         mutation=paste0(data$V4,data$V2,data$V5)
         detail=do.call(rbind,strsplit(as.character(data$V10),split=':'))[,3]
