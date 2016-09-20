@@ -10,7 +10,7 @@ option_list <- list(
 )
 
 opt <- parse_args(OptionParser(option_list=option_list))
-print(opt)
+#print(opt)
 
 # rawfile
 in_file=opt$in_file
