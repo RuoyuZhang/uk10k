@@ -1,6 +1,7 @@
 rm(list=ls())
 options(java.parameters = "-Xmx8000m")
 library('optparse')
+library('GenABEL')
 
 option_list <- list(
     make_option(c("--multi_file"), type="character", help="dir to input ped file", default="/home/fs01/rz253/project/uk10k/analysis/copynumber/calculate_copy_number/single.copy.txt"),
@@ -37,6 +38,7 @@ pheno.list=read.table(pheno_list_file,header = T,sep=',')
 
 # all samples
 all.sample=rbind(single,multi)
+all.sample$tcopynumber=rntransform(all.sample$copynumber)
 
 age=all.sample$Hematology_Tests_Age
 
@@ -45,7 +47,7 @@ for (i in which(is.na(age))){
 }
 
 ped=cbind(as.character(all.sample$sampleID),as.character(all.sample$sampleID),rep("0",length(all.sample$sampleID)),rep("0",length(all.sample$sampleID)),
-          rep("2",length(all.sample$sampleID)),all.sample$copynumber,age,age^2)
+          rep("2",length(all.sample$sampleID)),all.sample$tcopynumber,age,age^2)
 
 colnames(ped)=c("fid","iid","fatid","matid","sex","copynumber","age","age2")
 
@@ -56,5 +58,5 @@ hap$hap=substr(hap$Haplogroup,1,1)
 temp=merge(ped,hap[,c(1,3)],by.x="fid",by.y="SampleID")
 temp2=merge(temp,pca[,c(1,4,5)],by.x="fid",by.y="FID")
 
-write.table(temp2,file=paste0(out_dir,"/pheno.hap.ped"),row.names = F,quote = F)
+write.table(temp2,file=paste0(out_dir,"/pheno.hap.transformed.ped"),row.names = F,quote = F)
 
