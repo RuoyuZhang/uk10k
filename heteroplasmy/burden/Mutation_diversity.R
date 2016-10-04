@@ -26,5 +26,7 @@ l=nrow(data.select)
 data.select=data.select[data.select$coverage>100 & data.select$mutation>1,]
 Diversity=apply(data.select[,c(2,8)],1,Cal_H)
 D=(sum(Diversity,na.rm = T)/l)
-write.table(D,file=opt$out_file,row.names = F,col.names = F,quote = F)
+sample_name=basename(opt$in_file)
+sample_name=sub('.mutation.table','',sample_name)
+write.table(t(c(sample_name,D)),file=opt$out_file,row.names = F,col.names = F,quote = F)
 
