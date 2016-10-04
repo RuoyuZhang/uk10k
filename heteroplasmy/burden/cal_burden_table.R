@@ -36,4 +36,6 @@ mutations=t(apply(basecount,1,count_mutation))
 data.new=cbind(data[,c(1,4)],basecount,mutations)
 
 colnames(data.new)=c('position','coverage','A','C','G','T','consensus','mutation','ts','tv')
+data.new$position=sub('chrM:','',data.new$position)
 write.table(data.new,opt$out_file,col.names = T,row.names = F,quote = F)
+
