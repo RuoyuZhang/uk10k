@@ -17,9 +17,10 @@ basecount=t(apply(data[,5:8],1,function(x){as.numeric(sub('[ATGC]:','',x))}))
 
 count_mutation=function(x){
     bases=c('A','C','G','T')
-    mutation=sum(x)- x[which.max(x)]
+    mutation=sort(x,decreasing = T)[2]
     consence=bases[which.max(x)]
     ts=0;tv=0
+    second=NA
     if (mutation > 0){
         second = bases[order(x,decreasing = T)][2]
         if (paste0(consence,second) %in% c('AC','CA','TC','CT')){
@@ -28,14 +29,15 @@ count_mutation=function(x){
             tv=tv+x[order(x,decreasing = T)][2]
         }
     }
-    return(c(consence,mutation,ts,tv))
+    return(c(consence,second,mutation,ts,tv))
 }
 
 mutations=t(apply(basecount,1,count_mutation))
 
 data.new=cbind(data[,c(1,4)],basecount,mutations)
 
-colnames(data.new)=c('position','coverage','A','C','G','T','consensus','mutation','ts','tv')
+colnames(data.new)=c('position','coverage','A','C','G','T','consensus','second','mutation','ts','tv')
 data.new$position=sub('chrM:','',data.new$position)
 write.table(data.new,opt$out_file,col.names = T,row.names = F,quote = F)
+
 
