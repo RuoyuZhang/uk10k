@@ -59,12 +59,10 @@ for (i in 1:length(coding.list)){
     
 }
 
-
-
 sample_name=basename(opt$in_file)
 sample_name=sub('.mutation.table','',sample_name)
 
-write.table(t(c(sample_name,D,variant.persite)),file=opt$out_file,row.names = F,col.names = F,quote = F)
+write.table(t(c(sample_name,D,region.d)),file=opt$out_file,row.names = F,col.names = F,quote = F)
 
 
 
