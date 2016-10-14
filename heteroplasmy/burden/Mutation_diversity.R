@@ -2,7 +2,7 @@ rm(list=ls())
 library('optparse')
 
 option_list <- list(
-    make_option(c("--in_file"), type="character", help="file containing mutation table", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/burden/test.mutation.table"),
+    make_option(c("--in_file"), type="character", help="file containing mutation table", default="f:/Cornell/experiment/uk10k/uk10k/burden/QTL_RP333139.mutation.table"),
     make_option(c("--ns_file"), type="character", help="file containing vcf file", default="f:/Cornell/experiment/uk10k/uk10k/burden/pathogenic_score.csv"),
     make_option(c("--region_file"), type="character", help="file containing mtDNA region", default="f:/Cornell/experiment/uk10k/uk10k/burden/gene.region.csv"),
     make_option(c("--min"), type="integer", help="min minor allele count", default=4),
@@ -70,8 +70,8 @@ ns.file=read.csv(opt$ns_file,header=F)
 n.change=do.call(rbind,(lapply(ns.file$V2,function(x){unlist(strsplit(as.character(x),split = '>'))})))
 ns.site=paste0(n.change[,1],ns.file$V1,n.change[,2])
 
-het.name1=paste0(data$consensus,data$position,data$mutation)
-het.name2=paste0(data$mutation,data$position,data$consensus)
+het.name1=paste0(data$consensus,data$position,data$second)
+het.name2=paste0(data$second,data$position,data$consensus)
 ns.index=((het.name1 %in% ns.site) | (het.name2 %in% ns.site))
 
 # overall heterogenicity
