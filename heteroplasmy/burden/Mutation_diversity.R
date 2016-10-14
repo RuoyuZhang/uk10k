@@ -85,7 +85,7 @@ D1=(sum(Diversity,na.rm = T)/l)
 # region diversity
 region.d=NULL
 for (i in 1:length(coding.list)){
-    data.select2=data.select[data.select$coverage>100 & data.select$mutation>opt$min & data.select$position %in% coding.list[[i]],]
+    data.select2=data.select[data.select$coverage>100 & data.select$mutation>=opt$min & data.select$position %in% coding.list[[i]],]
     if (nrow(data.select)>0){
         l = sum(data$coverage>100 & data$position %in% coding.list[[i]])
         Diversity=apply(data.select2[,c(2,9)],1,Cal_H)
