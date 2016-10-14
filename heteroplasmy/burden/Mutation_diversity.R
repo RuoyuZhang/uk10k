@@ -39,15 +39,15 @@ coding.list[['MT-CR']]=c(1:576,16024:16569)
 length(coding.list)
 
 # overall heterogenicity
-data.select=data[data$coverage>100 & data$mutation>opt$min,]
+data.select=data[data$coverage>100 & data$mutation>=opt$min,]
 l = sum(data$coverage>100)
 Diversity=apply(data.select[,c(2,9)],1,Cal_H)
-D=(sum(Diversity,na.rm = T)/l)
+D1=(sum(Diversity,na.rm = T)/l)
 
 # region diversity
 region.d=NULL
 for (i in 1:length(coding.list)){
-    data.select=data[data$coverage>100 & data$mutation>opt$min & data$position %in% coding.list[[i]],]
+    data.select=data[data$coverage>100 & data$mutation>=opt$min & data$position %in% coding.list[[i]],]
     if (nrow(data.select)>0){
         l = sum(data$coverage>100 & data$position %in% coding.list[[i]])
         Diversity=apply(data.select[,c(2,9)],1,Cal_H)
@@ -62,7 +62,7 @@ for (i in 1:length(coding.list)){
 sample_name=basename(opt$in_file)
 sample_name=sub('.mutation.table','',sample_name)
 
-write.table(t(c(sample_name,D,region.d)),file=opt$out_file,row.names = F,col.names = F,quote = F)
+write.table(t(c(sample_name,D1,region.d)),file=opt$out_file,row.names = F,col.names = F,quote = F)
 
 
 # only consider ns
@@ -76,11 +76,11 @@ ns.index=((het.name1 %in% ns.site) | (het.name2 %in% ns.site))
 
 # overall heterogenicity
 data.select=data[ns.index,]
-data.select=data.select[data.select$coverage>100 & data.select$mutation>opt$min,]
+data.select=data.select[data.select$coverage>100 & data.select$mutation>=opt$min,]
 
 l = sum(data$coverage>100)
 Diversity=apply(data.select[,c(2,9)],1,Cal_H)
-D=(sum(Diversity,na.rm = T)/l)
+D1=(sum(Diversity,na.rm = T)/l)
 
 # region diversity
 region.d=NULL
@@ -100,4 +100,4 @@ for (i in 1:length(coding.list)){
 sample_name=basename(opt$in_file)
 sample_name=sub('.mutation.table','',sample_name)
 
-write.table(t(c(sample_name,D,region.d)),file=opt$out_file2,row.names = F,col.names = F,quote = F)
+write.table(t(c(sample_name,D1,region.d)),file=opt$out_file2,row.names = F,col.names = F,quote = F)
