@@ -31,6 +31,8 @@ for (file in files){
         Diversity=apply(data[,c(2,9)],1,Cal_H)
         out.sample=cbind(as.character(sample),paste0(data$consensus,data$pos,data$second),Diversity)
         out.table=rbind(out.table,out.sample)
+    }else{
+        out.table=rbind(out.table,c(sample,'A10306C',0))
     }
     print(sample)
 }
