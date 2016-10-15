@@ -27,9 +27,12 @@ for (file in files){
     filepath=paste0(opt$in_dir,file)
     data=read.table(filepath,header=T)
     data=data[data$coverage>100 & data$mutation>opt$min,]
-    Diversity=apply(data[,c(2,9)],1,Cal_H)
-    out.sample=cbind(as.character(sample),paste0(data$consensus,data$pos,data$second),Diversity)
-    out.table=rbind(out.table,out.sample)
+    if (nrow(data)>0){
+        Diversity=apply(data[,c(2,9)],1,Cal_H)
+        out.sample=cbind(as.character(sample),paste0(data$consensus,data$pos,data$second),Diversity)
+        out.table=rbind(out.table,out.sample)
+    }
+    print(sample)
 }
 
 colnames(out.table)=c('sampleID','variant','het')
