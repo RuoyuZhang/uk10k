@@ -28,7 +28,8 @@ for (file in files){
     data=read.table(filepath,header=T)
     data=data[data$coverage>100 & data$mutation>opt$min,]
     if (nrow(data)>0){
-        Diversity=apply(data[,c(2,9)],1,Cal_H)
+        #Diversity=apply(data[,c(2,9)],1,Cal_H)
+        Diversity=apply(data[,c(2,9)],1,function(x){x[9]/x[2]})
         out.sample=cbind(as.character(sample),paste0(data$consensus,data$pos,data$second),Diversity)
         out.table=rbind(out.table,out.sample)
     }else{
