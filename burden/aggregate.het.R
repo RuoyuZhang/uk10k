@@ -11,7 +11,7 @@ option_list <- list(
 
 opt <- parse_args(OptionParser(option_list=option_list))
 
-files=list.files(path=opt$in_dir,pattern='.table')
+files=list.files(path=opt$in_dir,pattern='.table$')
 
 Cal_H = function(x){
     x=as.numeric(as.character(x))
