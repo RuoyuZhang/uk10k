@@ -2,7 +2,7 @@ rm(list=ls())
 library('optparse')
 
 option_list <- list(
-    make_option(c("--in_file"), type="character", help="file containing GATK base count", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/burden/QTL190044.raw"),
+    make_option(c("--in_file"), type="character", help="file containing GATK base count", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/burden/UK10K_ALS5086237.raw"),
     make_option(c("--out_file"), type="character", help="output file", default="f:/Cornell/experiment/uk10k/uk10k/heteroplasmy/burden/test.mutation.table")
     
 )
@@ -10,7 +10,8 @@ option_list <- list(
 opt <- parse_args(OptionParser(option_list=option_list))
 
 data=read.table(opt$in_file,header=F,fill = T)
-data=data[data$V1!='not_reliable',]
+data=data[data$V1=='chrM',]
+
 
 
 # consense
